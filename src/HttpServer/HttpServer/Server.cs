@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Text;
 
 namespace HttpServer
@@ -25,6 +24,16 @@ namespace HttpServer
 
                 var client = listener.AcceptTcpClient();
                 Console.WriteLine("Client connected.");
+
+                using NetworkStream stream = client.GetStream();
+                byte[] buffer = new byte[1024];
+                int bytesRead = stream.Read(buffer, 0, 1024);
+
+                string dataRead = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Console.WriteLine($"Data recieved : {dataRead}");
+
+
+
             }
             finally
             {
