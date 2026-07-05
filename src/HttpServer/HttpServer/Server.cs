@@ -41,10 +41,12 @@ namespace HttpServer
 
 
                 string body = "Invalid Route";
+                string statusLine = "200 OK";
 
                 if (route == "/")
                 {
                     body = "Home Page";
+
                 }
                 else if (route == "/about")
                 {
@@ -53,12 +55,15 @@ namespace HttpServer
                 else if (route == "/contact")
                 {
                     body = "Contact us at example@email.com";
+                } else
+                {
+                    statusLine = "404 Not Found";
                 }
 
                 int numBytes = Encoding.UTF8.GetByteCount(body);
 
                 string response = $"""
-                                  HTTP/1.1 200 OK
+                                  HTTP/1.1 {statusLine}
                                   Content-Type: text/html; charset=utf-8
                                   Content-Length: {numBytes}
 
