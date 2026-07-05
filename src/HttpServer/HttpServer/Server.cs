@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection.Metadata;
+using System.IO;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 using static System.Net.WebRequestMethods;
 
 namespace HttpServer
@@ -45,12 +43,38 @@ namespace HttpServer
 
                 if (route == "/")
                 {
-                    body = "Home Page";
+
+                    string filePath = "../../../wwwroot/index.html";
+
+                    try
+                    {
+                        body = System.IO.File.ReadAllText(filePath);
+                    }
+                    catch (FileNotFoundException ex)
+                    {
+
+                        body = "Index file Not Found";
+                        statusLine = "404 Not Found";
+                    }
+
+                   
 
                 }
                 else if (route == "/about")
                 {
-                    body = "About Page";
+                    string filePath = "../../../wwwroot/about.html";
+
+                    try
+                    {
+                        body = System.IO.File.ReadAllText(filePath);
+                    }
+                    catch (FileNotFoundException ex)
+                    {
+
+                        body = "file Not Found";
+                        statusLine = "404 Not Found";
+                    }
+
                 }
                 else if (route == "/contact")
                 {
