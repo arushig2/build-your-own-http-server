@@ -12,5 +12,14 @@
 
         public string ContentType { get; set; }
 
+        public HttpResponse()
+        {
+            StatusLine = "200 OK";
+            ContentType = "text/html; charset=utf-8";
+            Body = "Invalid Route";
+            BodyBytes = null;
+        }
+        
+
     }
 }
