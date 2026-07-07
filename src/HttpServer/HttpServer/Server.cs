@@ -1,16 +1,13 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.IO;
 using System.Text;
-using static System.Net.WebRequestMethods;
-using System.ComponentModel;
+
 
 namespace HttpServer
 {
     public class Server
     {
-
+       
         public void Start()
         {
             const int Port = 8080;
@@ -28,6 +25,10 @@ namespace HttpServer
 
                 while (true)
                 {
+
+                    HttpRequest request = new HttpRequest();
+                    HttpResponse response = new HttpResponse();
+
                     var client = listener.AcceptTcpClient();
                     Console.WriteLine("Client connected.");
 
@@ -39,133 +40,134 @@ namespace HttpServer
                     Console.WriteLine($"Data recieved : {dataRead}");
 
                     string requestLine = dataRead.Split("\n")[0];
-                    string[] headers = requestLine.Split(" ");
-                    string method = headers[0];
-                    string route = headers[1];
-                    
-                    string body = "Invalid Route";
-                    string statusLine = "200 OK";
-                    string contentType = "text/html; charset=utf-8";
-                    byte[]? bodyBytes = null;
+                    string[] requestParts = requestLine.Split(" ");
+                    request.Method = requestParts[0];
+                    request.Route = requestParts[1];
+                    request.Version = requestParts[2];
+
+                    response.Body = "Invalid Route";
+                    response.StatusLine = "200 OK";
+                    response.ContentType = "text/html; charset=utf-8";
+                    response.BodyBytes = null;
                     int numBytes = 0;
                     string rootPath = "../../../wwwroot/";
 
 
-                    if (method == "GET")
+                    if (request.Method == "GET")
                     {
-                        if (route == "/")
+                        if (request.Route == "/")
                         {
                             string filePath = rootPath + "index.html";
 
                             try
                             {
-                                body = System.IO.File.ReadAllText(filePath);
+                                response.Body = System.IO.File.ReadAllText(filePath);
 
                             }
                             catch (FileNotFoundException)
                             {
 
-                                body = "Index file Not Found";
-                                statusLine = "404 Not Found";
+                                response.Body = "Index file Not Found";
+                                response.StatusLine = "404 Not Found";
                             }
                         }
-                        else if (route == "/about")
+                        else if (request.Route == "/about")
                         {
                             string filePath = rootPath + "about.html";
 
                             try
                             {
-                                body = System.IO.File.ReadAllText(filePath);
+                                response.Body = System.IO.File.ReadAllText(filePath);
                             }
                             catch (FileNotFoundException)
                             {
 
-                                body = "file Not Found";
-                                statusLine = "404 Not Found";
+                                response.Body = "file Not Found";
+                                response.StatusLine = "404 Not Found";
                             }
 
                         }
-                        else if (route == "/contact")
+                        else if (request.Route == "/contact")
                         {
                             string filePath = rootPath + "contact.html";
 
                             try
                             {
-                                body = System.IO.File.ReadAllText(filePath);
+                                response.Body = System.IO.File.ReadAllText(filePath);
                             }
                             catch (FileNotFoundException)
                             {
 
-                                body = "file Not Found";
-                                statusLine = "404 Not Found";
+                                response.Body = "file Not Found";
+                                response.StatusLine = "404 Not Found";
                             }
                         }
-                        else if (route == "/style.css")
+                        else if (request.Route == "/style.css")
                         {
                             string filePath = rootPath + "style.css";
 
                             try
                             {
-                                body = System.IO.File.ReadAllText(filePath);
-                                contentType = "text/css; charset=utf-8";
+                                response.Body = System.IO.File.ReadAllText(filePath);
+                                response.ContentType = "text/css; charset=utf-8";
                             }
                             catch (FileNotFoundException)
                             {
 
-                                body = "Index file Not Found";
-                                statusLine = "404 Not Found";
+                                response.Body = "Index file Not Found";
+                                response.StatusLine = "404 Not Found";
                             }
 
                         }
-                        else if (route == "/script.js")
+                        else if (request.Route == "/script.js")
                         {
                             string filePath = rootPath + "script.js";
 
                             try
                             {
-                                body = System.IO.File.ReadAllText(filePath);
-                                contentType = "application/javascript; charset=utf-8";
+                                response.Body = System.IO.File.ReadAllText(filePath);
+                                response.ContentType = "application/javascript; charset=utf-8";
                             }
                             catch (FileNotFoundException)
                             {
 
-                                body = "Index file Not Found";
-                                statusLine = "404 Not Found";
+                                response.Body = "Index file Not Found";
+                                response.StatusLine = "404 Not Found";
                             }
 
                         }
-                        else if (route == "/img.png")
+                        else if (request.Route == "/img.png")
                         {
                             string filePath = rootPath + "img.png";
 
                             try
                             {
-                                bodyBytes = System.IO.File.ReadAllBytes(filePath);
-                                contentType = "image/png";
+                                response.BodyBytes = System.IO.File.ReadAllBytes(filePath);
+                                response.ContentType = "image/png";
 
                             }
                             catch (FileNotFoundException)
                             {
 
-                                body = "Image Not Found";
-                                statusLine = "404 Not Found";
+                                response.Body = "Image Not Found";
+                                response.StatusLine = "404 Not Found";
                             }
 
                         }
                         else
                         {
-                            statusLine = "404 Not Found";
+                            response.StatusLine = "404 Not Found";
                         }
 
 
                     }
 
-                    else if (method == "POST")
+                    else if (request.Method == "POST")
                     {
-                        if (route == "/contact")
+                        if (request.Route == "/contact")
                         {
-                            string requestBody = dataRead.Split("\r\n\r\n")[1];
-                            string[] keyValue = requestBody.Split('&');
+                            request.Body = dataRead.Split("\r\n\r\n")[1];
+                            string[] keyValue = request.Body.Split('&');
                             string[] key = new string[keyValue.Length];
                             string[] value = new string[keyValue.Length];
 
@@ -177,40 +179,40 @@ namespace HttpServer
                                 value[i] = pair[1];
                             }
 
-                            body = $"<h1>Form Submitted</h1>\r\n\r\n<p>{key[0]}: {value[0]}</p>\r\n\r\n<p>{key[1]}: {value[1]}</p>";
-                            contentType = "text/html; charset=utf-8";
-                            numBytes = Encoding.UTF8.GetByteCount(body);
+                            response.Body = $"<h1>Form Submitted</h1>\r\n\r\n<p>{key[0]}: {value[0]}</p>\r\n\r\n<p>{key[1]}: {value[1]}</p>";
+                            response.ContentType = "text/html; charset=utf-8";
+                            
                         }
                     }
 
-                    if (bodyBytes != null)
+                    if (response.BodyBytes != null)
                     {
-                        numBytes = bodyBytes.Length;
+                        numBytes = response.BodyBytes.Length;
                     }
                     else
                     {
-                        numBytes = Encoding.UTF8.GetByteCount(body);
+                        numBytes = Encoding.UTF8.GetByteCount(response.Body);
                     }
 
-                    string response = $"""
-                                  HTTP/1.1 {statusLine}
-                                  Content-Type: {contentType}
+                    string responseMsg = $"""
+                                  HTTP/1.1 {response.StatusLine}
+                                  Content-Type: {response.ContentType}
                                   Content-Length: {numBytes}
 
                                   
                                   """;
 
-                    byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+                    byte[] responseBytes = Encoding.UTF8.GetBytes(responseMsg);
 
                     stream.Write(responseBytes, 0, responseBytes.Length);
 
-                    if (bodyBytes != null)
+                    if (response.BodyBytes != null)
                     {
-                        stream.Write(bodyBytes, 0, bodyBytes.Length);
+                        stream.Write(response.BodyBytes, 0, response.BodyBytes.Length);
                     }
                     else
                     {
-                        byte[] textBytes = Encoding.UTF8.GetBytes(body);
+                        byte[] textBytes = Encoding.UTF8.GetBytes(response.Body);
                         stream.Write(textBytes, 0, textBytes.Length);
                     }
 
