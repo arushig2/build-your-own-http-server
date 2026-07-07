@@ -38,109 +38,149 @@ namespace HttpServer
                     string dataRead = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     Console.WriteLine($"Data recieved : {dataRead}");
 
-
                     string requestLine = dataRead.Split("\n")[0];
-                    string route = requestLine.Split(" ")[1];
-
-
+                    string[] headers = requestLine.Split(" ");
+                    string method = headers[0];
+                    string route = headers[1];
+                    
                     string body = "Invalid Route";
                     string statusLine = "200 OK";
                     string contentType = "text/html; charset=utf-8";
                     byte[]? bodyBytes = null;
                     int numBytes = 0;
+                    string rootPath = "../../../wwwroot/";
 
 
-
-                    if (route == "/")
+                    if (method == "GET")
                     {
-                        string filePath = "../../../wwwroot/index.html";
-
-                        try
+                        if (route == "/")
                         {
-                            body = System.IO.File.ReadAllText(filePath);
-                           
+                            string filePath = rootPath + "index.html";
+
+                            try
+                            {
+                                body = System.IO.File.ReadAllText(filePath);
+
+                            }
+                            catch (FileNotFoundException)
+                            {
+
+                                body = "Index file Not Found";
+                                statusLine = "404 Not Found";
+                            }
                         }
-                        catch (FileNotFoundException)
+                        else if (route == "/about")
                         {
+                            string filePath = rootPath + "about.html";
 
-                            body = "Index file Not Found";
+                            try
+                            {
+                                body = System.IO.File.ReadAllText(filePath);
+                            }
+                            catch (FileNotFoundException)
+                            {
+
+                                body = "file Not Found";
+                                statusLine = "404 Not Found";
+                            }
+
+                        }
+                        else if (route == "/contact")
+                        {
+                            string filePath = rootPath + "contact.html";
+
+                            try
+                            {
+                                body = System.IO.File.ReadAllText(filePath);
+                            }
+                            catch (FileNotFoundException)
+                            {
+
+                                body = "file Not Found";
+                                statusLine = "404 Not Found";
+                            }
+                        }
+                        else if (route == "/style.css")
+                        {
+                            string filePath = rootPath + "style.css";
+
+                            try
+                            {
+                                body = System.IO.File.ReadAllText(filePath);
+                                contentType = "text/css; charset=utf-8";
+                            }
+                            catch (FileNotFoundException)
+                            {
+
+                                body = "Index file Not Found";
+                                statusLine = "404 Not Found";
+                            }
+
+                        }
+                        else if (route == "/script.js")
+                        {
+                            string filePath = rootPath + "script.js";
+
+                            try
+                            {
+                                body = System.IO.File.ReadAllText(filePath);
+                                contentType = "application/javascript; charset=utf-8";
+                            }
+                            catch (FileNotFoundException)
+                            {
+
+                                body = "Index file Not Found";
+                                statusLine = "404 Not Found";
+                            }
+
+                        }
+                        else if (route == "/img.png")
+                        {
+                            string filePath = rootPath + "img.png";
+
+                            try
+                            {
+                                bodyBytes = System.IO.File.ReadAllBytes(filePath);
+                                contentType = "image/png";
+
+                            }
+                            catch (FileNotFoundException)
+                            {
+
+                                body = "Image Not Found";
+                                statusLine = "404 Not Found";
+                            }
+
+                        }
+                        else
+                        {
                             statusLine = "404 Not Found";
                         }
-                    }
-                    else if (route == "/about")
-                    {
-                        string filePath = "../../../wwwroot/about.html";
 
-                        try
-                        {
-                            body = System.IO.File.ReadAllText(filePath);
-                        }
-                        catch (FileNotFoundException)
-                        {
-
-                            body = "file Not Found";
-                            statusLine = "404 Not Found";
-                        }
 
                     }
-                    else if (route == "/contact")
+
+                    else if (method == "POST")
                     {
-                        body = "Contact us at example@email.com";
-                    }
-                    else if (route == "/style.css")
-                    {
-                        string filePath = "../../../wwwroot/style.css";
-
-                        try
+                        if (route == "/contact")
                         {
-                            body = System.IO.File.ReadAllText(filePath);
-                            contentType = "text/css; charset=utf-8";
+                            string requestBody = dataRead.Split("\r\n\r\n")[1];
+                            string[] keyValue = requestBody.Split('&');
+                            string[] key = new string[keyValue.Length];
+                            string[] value = new string[keyValue.Length];
+
+                            for (int i = 0; i < keyValue.Length; i++)
+                            {
+                                string[] pair = keyValue[i].Split('=');
+
+                                key[i] = pair[0];
+                                value[i] = pair[1];
+                            }
+
+                            body = $"<h1>Form Submitted</h1>\r\n\r\n<p>{key[0]}: {value[0]}</p>\r\n\r\n<p>{key[1]}: {value[1]}</p>";
+                            contentType = "text/html; charset=utf-8";
+                            numBytes = Encoding.UTF8.GetByteCount(body);
                         }
-                        catch (FileNotFoundException)
-                        {
-
-                            body = "Index file Not Found";
-                            statusLine = "404 Not Found";
-                        }
-
-                    }
-                    else if (route == "/script.js")
-                    {
-                        string filePath = "../../../wwwroot/script.js";
-
-                        try
-                        {
-                            body = System.IO.File.ReadAllText(filePath);
-                            contentType = "application/javascript; charset=utf-8";
-                        }
-                        catch (FileNotFoundException)
-                        {
-
-                            body = "Index file Not Found";
-                            statusLine = "404 Not Found";
-                        }
-
-                    } else if(route == "/img.png")
-                    {
-                        string filePath = "../../../wwwroot/img.png";
-
-                        try
-                        {
-                            bodyBytes = System.IO.File.ReadAllBytes(filePath);
-                            contentType = "image/png";
-                            
-                        }
-                        catch (FileNotFoundException)
-                        {
-
-                            body = "Image Not Found";
-                            statusLine = "404 Not Found";
-                        }
-
-                    }
-                    else
-                    {
-                        statusLine = "404 Not Found";
                     }
 
                     if (bodyBytes != null)
@@ -173,8 +213,6 @@ namespace HttpServer
                         byte[] textBytes = Encoding.UTF8.GetBytes(body);
                         stream.Write(textBytes, 0, textBytes.Length);
                     }
-
-
 
                     client.Close();
                 }               
